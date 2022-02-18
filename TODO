@@ -1,0 +1,6 @@
+Read graph from file   [FIX]
+testsuite+benchmarks   [ ]
+sanity check of graph  [FIX]
+get largest WCC        [ ]
+Boundingecc core       [X]
+pruning strategy       [ ]
