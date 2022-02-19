@@ -1,6 +1,8 @@
 rm -r build
 
-mkdir build
-cd build
-cmake ..
+BUILD="build"
+
+mkdir "$BUILD"
+cd "$BUILD"
+cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .

@@ -2,7 +2,7 @@
 
 
 OUT="outputs"
-BUILD="build"
+BUILD="build_tests"
 TEST="test_graphs"
 COUNT=0
 
@@ -12,7 +12,7 @@ mkdir "$BUILD"
 mkdir "$OUT"
 
 cd "$BUILD"
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
 
 cd ../"$TEST"
@@ -20,5 +20,11 @@ for file in *
 do
     echo "$file"
     ./../"$BUILD"/be "$file" "../$OUT/out$file.txt"
-    echo ""
 done;
+
+cd "../$OUT"
+for file in *
+do
+    echo "$file"
+    diff "$file" "../""$OUT""_old/$file"
+done
