@@ -7,6 +7,8 @@
 #include <igraph.h>
 
 int graph_from_file(igraph_t *graph, const char *ifile_name);
-int eccentricities_to_file(igraph_vector_t *eccen, const char *ofile_name);
+int eccentricities_to_file(igraph_vector_t *eccen,
+        igraph_real_t count_bfs,
+        const char *ofile_name);
 
 #endif
