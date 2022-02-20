@@ -14,10 +14,8 @@ function).
 
 ## How to build the program:
 
-release build:
-    `./run.sh`
-testsuite + leak_checks + debugmode:
-    `./run_tests.sh`
+- release build: `./run.sh`
+- testsuite + leak_checks + debugmode: `./run_tests.sh`
 
 #### Warning
 
@@ -26,7 +24,7 @@ igraph. Please adapt path values in CMakelists.txt for include_directories
 and link_directories.
 
 ## How to execute the program:
-    `./be <input_file> [<output_file>]`
+`./be <input_file> [<output_file>]`
 
 if output_file is not specified out.txt will be chosen be chosen by default. The
 output file contains:
