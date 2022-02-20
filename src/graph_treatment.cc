@@ -19,7 +19,105 @@ int get_commu(igraph_t *graph,
     return 0;
 }
 
-int compute_eccentricity(igraph_t *graph,
+
+int community_mask_init(igraph_vector_t *membership,
+        igraph_real_t nb_commu,
+        igraph_real_t nb_v,
+        std::vector<std::vector<bool>> &comm_mask)
+{
+    comm_mask.resize(nb_commu);
+    for (auto it = comm_mask.begin(); it != comm_mask.end(); it++)
+    {
+        it->resize(nb_v);
+        std::fill(it->begin(), it->end(), false);
+    }
+    for (auto i = 0; i < nb_v; i++)
+    {
+        igraph_real_t commu = igraph_vector_e(membership, i);
+        comm_mask[commu][i] = true;
+    }
+    return 0;
+}
+
+void mask(std::vector<bool> comm_mask,
+        std::vector<igraph_real_t> in,
+        std::vector<igraph_real_t> &out)
+{
+    auto size = comm_mask.size();
+    for (auto i = 0; i < size; i++)
+    {
+        if (comm_mask[i])
+            out[i] = in[i];
+        else
+            out[i] = -1;
+    }
+}
+
+igraph_integer_t commu_max_delta_sum(
+        std::vector<igraph_real_t> &delta,
+        std::vector<std::vector<bool>> &comm_mask)
+{
+    igraph_integer_t max_commu, nb_commu, nb_v;
+    std::vector<igraph_real_t> sum_delta_commu, mask_i;
+    nb_commu = comm_mask.size();
+    nb_v = delta.size();
+    sum_delta_commu.resize(nb_commu);
+    mask_i.resize(nb_v);
+    for (auto i = 0; i < nb_commu; i++)
+    {
+        sum_delta_commu[i] = 0;
+        mask(comm_mask[i], delta, mask_i);
+        for (auto j = 0; j < nb_v; j++)
+            sum_delta_commu[i] += mask_i[j];
+    }
+    return std::max_element(sum_delta_commu.begin(), sum_delta_commu.end()) -
+        sum_delta_commu.begin();
+}
+
+igraph_real_t random_select(igraph_vector_t *cand)
+{
+    igraph_integer_t nb_v = igraph_vector_size(cand);
+    igraph_real_t selected = rand() % nb_v;
+    while (igraph_vector_e(cand, selected) == false)
+        selected = rand() % nb_v;
+    return selected;
+}
+
+igraph_real_t select_commu_max_delta(
+        std::vector<igraph_real_t> &delta,
+        igraph_vector_t *cand,
+        std::vector<std::vector<bool>> &comm_mask)
+{
+    igraph_real_t selected;
+    igraph_integer_t nb_commu, nb_v, commu_selected;
+    nb_v = delta.size();
+    nb_commu = comm_mask.size();
+    std::vector<igraph_real_t> tmp;
+    tmp.resize(nb_v);
+    commu_selected = commu_max_delta_sum(delta, comm_mask);
+    mask(comm_mask[commu_selected], delta, tmp);
+    selected = std::max_element(tmp.begin(), tmp.end()) - tmp.begin();
+
+    return selected;
+}
+
+igraph_real_t select_next_root(
+        std::vector<igraph_real_t> &delta,
+        igraph_vector_t *cand,
+        std::vector<std::vector<bool>> &comm_mask,
+        igraph_real_t &count_bfs)
+{
+    igraph_real_t selected;
+    auto rand_select_method = rand() / RAND_MAX;
+
+    if (rand_select_method <= (1 / count_bfs) + 0.05)
+        selected = random_select(cand);
+    else
+        selected = select_commu_max_delta(delta, cand, comm_mask);
+    return selected;
+}
+
+int eccentricity(igraph_t *graph,
         igraph_integer_t root,
         igraph_vector_t *eccen,
         igraph_vector_t *dist,
@@ -60,73 +158,15 @@ int compute_eccentricity(igraph_t *graph,
     return 0;
 }
 
-int community_mask(igraph_vector_t *membership,
-        igraph_real_t nb_commu,
-        igraph_real_t nb_v,
-        std::vector<std::vector<bool>> &comm_mask)
-{
-    comm_mask.resize(nb_commu);
-    for (auto it = comm_mask.begin(); it != comm_mask.end(); it++)
-    {
-        it->resize(nb_v);
-        std::fill(it->begin(), it->end(), false);
-    }
-    for (auto i = 0; i < nb_v; i++)
-    {
-        igraph_real_t commu = igraph_vector_e(membership, i);
-        comm_mask[commu][i] = true;
-    }
-    return 0;
-}
-
-void mask(std::vector<bool> comm_mask,
-        std::vector<igraph_real_t> in,
-        std::vector<igraph_real_t> &out)
-{
-    auto size = comm_mask.size();
-    for (auto i = 0; i < size; i++)
-    {
-        if (comm_mask[i])
-            out[i] = in[i];
-        else
-            out[i] = -1;
-    }
-}
-
-igraph_real_t select_next_root(
-        std::vector<igraph_real_t> &delta,
-        igraph_vector_t *cand,
-        std::vector<std::vector<bool>> &comm_mask,
-        igraph_integer_t &nxt_commu)
-{
-    igraph_real_t selected;
-
-    igraph_integer_t nb_commu, nb_v;
-    nb_v = delta.size();
-    nb_commu = comm_mask.size();
-    std::vector<igraph_real_t> tmp;
-    tmp.resize(nb_v);
-    do {
-        //irand = rand() % nb_commu;
-        mask(comm_mask[nxt_commu], delta, tmp);
-        selected = std::max_element(tmp.begin(), tmp.end()) - tmp.begin();
-        nxt_commu = (nxt_commu + 1) % nb_commu;
-    }
-    while (igraph_vector_e(cand, selected) == false);
-    selected = std::max_element(tmp.begin(), tmp.end()) - tmp.begin();
-
-    //selected = std::max_element(delta.begin(), delta.end()) - delta.begin();
-    return selected;
-}
-
 int bounding_eccentricities(igraph_t *graph,
         igraph_vector_t *eccen,
-        igraph_real_t *count_bfs)
+        igraph_real_t &count_bfs)
 {
+    srand(time(NULL));
 
     igraph_real_t nb_v = igraph_vcount(graph);
     igraph_real_t root;
-    igraph_integer_t nb_commu, nxt_commu = 0;
+    igraph_integer_t nb_commu;
     igraph_vector_t ecc_l, ecc_u, cand, dist, membership;
     std::vector<std::vector<bool>> commu_mask;
     std::vector<igraph_real_t> delta;
@@ -145,14 +185,14 @@ int bounding_eccentricities(igraph_t *graph,
 
     get_commu(graph, &membership);
     nb_commu = igraph_vector_max(&membership) + 1;
-    community_mask(&membership, nb_commu, nb_v, commu_mask);
+    community_mask_init(&membership, nb_commu, nb_v, commu_mask);
 
     while (igraph_vector_contains(&cand, true))
     {
-        root = select_next_root(delta, &cand, commu_mask, nxt_commu);
+        root = select_next_root(delta, &cand, commu_mask, count_bfs);
 
-        compute_eccentricity(graph, root, eccen, &dist, &cand);
-        *count_bfs += 1;
+        eccentricity(graph, root, eccen, &dist, &cand);
+        count_bfs += 1;
         for (igraph_integer_t w = 0; w < nb_v; w++)
         {
             if (igraph_vector_e(&cand, w) == false)

@@ -26,7 +26,7 @@ int main(int argc, const char* argv[])
     err = get_wcc(&graph, &wcc);
 
     auto start = std::chrono::high_resolution_clock::now();
-    err &= bounding_eccentricities((igraph_t *)VECTOR(wcc)[0], &eccen, &count_bfs);
+    err &= bounding_eccentricities((igraph_t *)VECTOR(wcc)[0], &eccen, count_bfs);
     auto stop = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);

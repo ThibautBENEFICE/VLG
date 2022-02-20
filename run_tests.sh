@@ -21,10 +21,3 @@ do
     echo "$file"
     ./../"$BUILD"/be "$file" "../$OUT/out$file.txt"
 done;
-
-cd "../$OUT"
-for file in *
-do
-    echo "$file"
-    diff "$file" "../""$OUT""_old/$file"
-done

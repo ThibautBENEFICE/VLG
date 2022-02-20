@@ -14,7 +14,7 @@
 
 int bounding_eccentricities(igraph_t *graph,
         igraph_vector_t *eccen,
-        igraph_real_t *count_bfs);
+        igraph_real_t &count_bfs);
 int get_wcc(igraph_t *graph, igraph_vector_ptr_t *wcc);
 
 #endif
