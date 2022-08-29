@@ -8,7 +8,7 @@ the eccentricity of all nodes while reducing as much as possible the number of
 bfs required.
 
 There are 2 main sections to this project: the bounding eccentricities algorithm
-(which was given in project description) and the method of selection of the
+and the method of selection of the
 successive nodes for which we compute their eccentricity (the select_next_root
 function).
 
@@ -33,5 +33,4 @@ output file contains:
 
 #### Warning
 
-This program only computes the eccentricity of the largest WCC and the
-nodes may be reindexed.
+This program only computes the eccentricity of the largest WCC.
