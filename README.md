@@ -1,4 +1,4 @@
-# VLG rattrapages S8 2022 - Thibaut BENEFICE
+# VLG S8 2022 - Thibaut BENEFICE
 
 This project is an implementation of the Bounding Eccentricities algorithm in
 c/c++.
